@@ -1,0 +1,109 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios'
+import './App.css'
+
+import Map, { Marker,Popup } from 'react-map-gl';
+import { Room, Star } from "@mui/icons-material";
+import {format} from "timeago.js"
+
+
+function App() {
+    console.log("Kusu")
+    const currentUsername  = "Hungry Birds"
+    const [pins,setPins] = useState([])
+    const [zoom, setZoom] = useState(4); // Initial zoom level
+    const [showPopup, setShowPopup] = useState(true);
+    const [currentPlaceId, setCurrentPlaceId] = useState(null);
+    useEffect(()=>{
+        const getpins = async()=>{
+            try{
+                const res = await axios.get("/api/pins")
+                console.log("res is" , res.data.getAllPins)
+                const transformedPins = Array.isArray(res.data.getAllPins) ? res.data.getAllPins : [];
+                console.log(transformedPins);
+                setPins(transformedPins);
+                
+                
+            }catch(err){
+                console.log("error")
+                console.log(err)
+            }
+        }
+        getpins()
+    },[])
+   
+
+    const handleMarkerClick = (id) => {
+        setCurrentPlaceId(id);
+        setShowPopup(true);
+    };
+
+    return (
+        <div className="App">
+            <Map 
+                mapboxAccessToken={process.env.REACT_APP_MAPBOX}
+                initialViewState={{
+                    longitude: 82.2475, // Longitude for Kakinada
+                    latitude: 16.9891,  // Latitude for Kakinada
+                    zoom: zoom          // Initialize with state zoom
+                }}
+                style={{ width: "100vw", height: "100vh" }}
+                mapStyle="mapbox://styles/mapbox/streets-v9"
+                onZoom={(e) => setZoom(e.viewState.zoom)} // Update zoom level dynamically
+            >
+            {pins.map((p) => (
+                <React.Fragment key={p._id}>
+                    { (showPopup && p._id === currentPlaceId ) && (
+                    <Popup
+                        key={p._id}
+                        latitude={p.lat}
+                        longitude={p.long}
+                        // closeButton={true}
+                        closeOnClick={false}
+                        onClose={
+                            () => {
+                                setShowPopup(false)
+                                setCurrentPlaceId(null)}}
+                        anchor="left"
+                    >
+                         <div className="card">
+                                <label>Place</label>
+                                <h4 className="place"><b>{p.title}</b></h4>
+                                <label>Review</label>
+                                <p className="desc">{p.desc}</p>
+                                <label>Rating</label>
+                                <div className="stars">
+                                    <Star className="star"/>
+                                    <Star className="star" />
+                                    <Star className="star" />
+                                    <Star className="star" />
+                                    <Star className="star" />
+                                </div>
+                                <label>Information</label>
+                                <span className="username">Created by <b>{p.username}</b></span>
+                                <span className="date">{format(p.createdAt)}</span>
+                            </div>
+                    </Popup>
+                    )}
+                    <Marker
+                    latitude={p.lat}
+                    longitude={p.long}
+                    >
+                    <Room
+                        style={{
+                        fontSize: `${zoom * 5}px`,
+                        color:
+                            currentUsername === p.username ? "tomato" : "slateblue",
+                        cursor: "pointer",
+                        }}
+                        onClick={() => handleMarkerClick(p._id)}
+                    />
+                    </Marker>
+                </React.Fragment>
+            ))}
+            </Map> 
+        </div>
+    );
+}
+
+export default App;
