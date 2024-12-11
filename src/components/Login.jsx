@@ -1,9 +1,9 @@
 import './login.css';
 import { useRef, useState } from 'react';
-import { Room } from '@mui/icons-material';
+import { Cancel,Room } from '@mui/icons-material';
 import axios from 'axios';
 
-export default function Login() {
+export default function Login({setShowLogin,storage,setCurrentUsername}) {
     const nameRef = useRef();
     const passwordRef = useRef();
     const [error, setError] = useState(null);
@@ -18,6 +18,9 @@ export default function Login() {
 
         try {
             const res = await axios.post('/api/users/login', userLogin);
+            storage.setItem("user",res.data.username)
+            setShowLogin(false)
+            setCurrentUsername(res.data.username)
             console.log('Response:', res.data);
             setError(false);
         } catch (err) {
@@ -28,6 +31,9 @@ export default function Login() {
         }
     };
 
+    const handlerClose = ()=>{
+        setShowLogin(false)
+    }
     return (
         <div className="loginContainer">
             <div className="logo">
@@ -40,6 +46,7 @@ export default function Login() {
                 <button className="loginBtn" type="submit">Login</button>
                 {error && <span className="failure">{errorMessage}.</span>}
             </form>
+            <Cancel className='loginCancel' onClick={handlerClose}/>
         </div>
     );
 }

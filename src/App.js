@@ -8,6 +8,7 @@ import Register from './components/Register';
 import Login from './components/Login'
 
 function App() {
+    const storage = window.localStorage;
     const [viewState, setViewState] = useState({
         longitude: 82.2475, // Longitude for Kakinada
         latitude: 16.9891,  // Latitude for Kakinada
@@ -80,6 +81,11 @@ function App() {
         }catch(err){
             console.log(err)
         }
+    }
+
+    const handleLogout = () => {
+        storage.removeItem("user")
+        setCurrentUsername(null)
     }
    
 
@@ -166,7 +172,7 @@ function App() {
                     {
                         currentUsername ?(
                             <div >
-                                <button className='button logout' >Log Out</button>
+                                <button className='button logout' onClick={handleLogout}>Log Out</button>
 
                             </div>
                         ):
@@ -176,11 +182,11 @@ function App() {
                         </div>)
                     }
                 { showRegister && <Register setShowRegister={setShowRegister}/>}
-                { showLogin && <Login setShowLogin={setShowLogin}/>}
+                { showLogin && <Login setCurrentUsername={setCurrentUsername} setShowLogin={setShowLogin} storage={storage}/>}
                         
                 
             </Map>
-        </div>
+        </div>                                                   
     );
 }
 
